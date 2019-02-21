@@ -1,0 +1,67 @@
+version: '3.4'
+
+services:
+
+  redis-master:
+    image: 'bitnami/redis:latest'
+    ports:
+      - '${MASTER_PORT}:6379'
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=${PASSWORD}
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    volumes:
+      - redis-master_data:/bitnami
+    networks:
+      - redis-overlay
+    healthcheck:
+      test: ["CMD", "curl", "-f", "redis-cli -a ${PASSWORD} -h localhost -p 6379 ping"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # redis-slave:
+  #   image: 'bitnami/redis:latest'
+  #   ports:
+  #     - '${SLAVE_PORT}:6379'
+  #   depends_on:
+  #     - redis-master
+  #   environment:
+  #     - REDIS_REPLICATION_MODE=slave
+  #     - REDIS_MASTER_HOST=redis-master
+  #     - REDIS_MASTER_PORT_NUMBER=6379
+  #     - REDIS_MASTER_PASSWORD=${PASSWORD}
+  #     - REDIS_PASSWORD=${PASSWORD}
+  #     - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+  #   volumes:
+  #     - redis-slave_data:/bitnami
+  #   networks:
+  #     - redis-overlay
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "redis-cli -a ${PASSWORD} -h localhost -p 6379 ping"]
+  #     interval: 1m
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
+  #
+  # redis-sentinel:
+  #   image: 'bitnami/redis-sentinel:latest'
+  #   environment:
+  #     - REDIS_MASTER_HOST=redis-master
+  #     - REDIS_MASTER_PASSWORD=${PASSWORD}
+  #   ports:
+  #     - '26379'
+  #   depends_on:
+  #     - redis-master
+  #   networks:
+  #     - redis-overlay
+
+networks:
+  redis-overlay:
+
+volumes:
+  redis-master_data:
+    driver: local
+  # redis-slave_data:
+  #   driver: local
